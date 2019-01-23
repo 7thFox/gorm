@@ -1,15 +1,3 @@
-# gorm
-GORM is a simple golang ORM for PostgreSQL built for very simple SQL interactions.
-If the usage section below isn't enough for you, I would recommend reading the source. 
-It's <500 lines and is basically just a exercise in golang's reflection.
-
-There are a few quirks, such as the PK not being able to reside within a nested Struct.
-Also I don't have any feature to delete a record, but I'm sure I'll do that one day...
-
-# usage
-The following example is also available in example/main.go
-
-```golang
 package main
 
 import (
@@ -69,4 +57,3 @@ func main() {
 	fmt.Printf("%#v\n", foo2)
 	// $ main.Foobar{FoobarID:1, Name:"example2", Debug:false, NestedStruct:struct { Bar main.Bar; Baz float64 }{Bar:"", Baz:5.599999904632568}}
 }
-```
