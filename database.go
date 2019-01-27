@@ -28,6 +28,12 @@ func Open(uds string) (*DatabaseConnection, error) {
 	return OpenVerbose(uds, uds, uds, false)
 }
 
+// OpenDebug opens a DB connection using the same user/db/schema and
+// enables outputing debug messages
+func OpenDebug(uds string) (*DatabaseConnection, error) {
+	return OpenVerbose(uds, uds, uds, true)
+}
+
 // OpenVerbose opens a DB allowing to specify different user/db/schema and enable debug log output
 func OpenVerbose(user, database, schema string, debug bool) (*DatabaseConnection, error) {
 	db := DatabaseConnection{Schema: schema, pkCache: map[reflect.Type]string{}, debug: debug}

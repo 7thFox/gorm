@@ -21,7 +21,7 @@ func (db *DatabaseConnection) Populate(obj DataObject, index int) error {
 	query := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %d;", db.Schema, t.Name(), pkname, index)
 	err := db.connection.QueryRow(query).Scan(values...)
 
-	return err
+	return errorWithQuery(err, query)
 }
 
 func addFieldToValueList(values []interface{}, e reflect.Value, i int) []interface{} {
@@ -30,10 +30,13 @@ func addFieldToValueList(values []interface{}, e reflect.Value, i int) []interfa
 	}
 	f := e.Field(i)
 	ft := f.Type()
-	if ft.Kind() == reflect.Struct {
+	if isFlattenableStruct(e.Type().Field(i)) {
 		for j := 0; j < ft.NumField(); j++ {
 			values = addFieldToValueList(values, f, j)
 		}
+		return values
+	}
+	if !isSupported(e.Type().Field(i)) {
 		return values
 	}
 

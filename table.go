@@ -44,7 +44,7 @@ func (db *DatabaseConnection) CreateTable(obj DataObject) error {
 	db.log(query.String())
 
 	_, err := db.connection.Exec(query.String())
-	return err
+	return errorWithQuery(err, query.String())
 }
 
 // DropTable will drop the table related the given DataObject
@@ -53,29 +53,20 @@ func (db *DatabaseConnection) DropTable(obj DataObject) error {
 	db.log("Dropping table ", table, "...")
 	query := fmt.Sprintf("DROP TABLE %s.%s", db.Schema, table)
 	_, err := db.connection.Exec(query)
-	return err
-}
-
-var golangToPostgresTypes = map[reflect.Kind]string{
-	reflect.String:  "VARCHAR",
-	reflect.Bool:    "BOOLEAN",
-	reflect.Int:     "BIGINT",
-	reflect.Int8:    "SMALLINT",
-	reflect.Int16:   "SMALLINT",
-	reflect.Int32:   "INTEGER",
-	reflect.Int64:   "BIGINT",
-	reflect.Float32: "FLOAT(4)",
-	reflect.Float64: "FLOAT(8)",
+	return errorWithQuery(err, query)
 }
 
 func getColumnDef(s *strings.Builder, f reflect.StructField, isPrimary, everInserted bool) bool {
 	if f.Tag.Get("exclude") == "true" {
 		return everInserted
 	}
-	if f.Type.Kind() == reflect.Struct {
+	if isFlattenableStruct(f) {
 		for i := 0; i < f.Type.NumField(); i++ {
 			everInserted = getColumnDef(s, f.Type.Field(i), false, everInserted)
 		}
+		return everInserted
+	}
+	if !isSupported(f) {
 		return everInserted
 	}
 	if everInserted {
@@ -83,18 +74,19 @@ func getColumnDef(s *strings.Builder, f reflect.StructField, isPrimary, everInse
 	}
 
 	isUnique := f.Tag.Get("unique") == "true"
-	size, sizeok := f.Tag.Lookup("size")
+	size, hasSize := f.Tag.Lookup("size")
+	fkObj, hasFkObj := f.Tag.Lookup("fk")
+	fkID, hasFkID := f.Tag.Lookup("fkid")
 
 	s.WriteString(f.Name)
 	s.WriteByte('\t')
 	if isPrimary {
-
 		s.WriteString("SERIAL PRIMARY KEY")
 		return true
 	}
 
 	s.WriteString(golangToPostgresTypes[f.Type.Kind()])
-	if sizeok {
+	if hasSize {
 		s.WriteByte('(')
 		s.WriteString(size)
 		s.WriteByte(')')
@@ -103,5 +95,19 @@ func getColumnDef(s *strings.Builder, f reflect.StructField, isPrimary, everInse
 	if isUnique {
 		s.WriteString(" UNIQUE")
 	}
+
+	if hasFkObj {
+		s.WriteString(" REFERENCES ")
+		s.WriteString(fkObj)
+		s.WriteRune('(')
+		if hasFkID {
+			s.WriteString(fkID)
+		} else {
+			s.WriteString(fkObj)
+			s.WriteString("ID")
+		}
+		s.WriteRune(')')
+	}
+
 	return true
 }
