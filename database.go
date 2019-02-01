@@ -12,6 +12,10 @@ import (
 // DataObject is defines the requirement of structs to be used with this package.
 // Currently this interface is empty, but may be used in the future.
 type DataObject interface {
+	Save(*DatabaseConnection) error
+	SaveRecursive(*DatabaseConnection) error
+	GetByID(*DatabaseConnection, int) error
+	GetByIDRecursive(*DatabaseConnection, int) error
 }
 
 // DatabaseConnection represents an open DB connection
