@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"unsafe"
 )
 
 func (db *DatabaseConnection) log(s ...string) {
@@ -25,4 +26,8 @@ func isFlattenableStruct(f reflect.StructField) bool {
 
 func isSupported(f reflect.StructField) bool {
 	return supportedTypes[f.Type.Kind()]
+}
+
+func asSettableUnexported(val reflect.Value) reflect.Value {
+	return reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem()
 }

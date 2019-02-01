@@ -10,7 +10,7 @@ import (
 // CreateTable will create a new table based upon the DataObject given
 func (db *DatabaseConnection) CreateTable(obj DataObject) error {
 	var query strings.Builder
-	t := reflect.TypeOf(obj)
+	t := reflect.TypeOf(obj).Elem()
 	db.log("Creating table ", t.Name(), "...")
 
 	query.WriteString("CREATE TABLE ")

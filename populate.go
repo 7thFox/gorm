@@ -40,5 +40,5 @@ func addFieldToValueList(values []interface{}, e reflect.Value, i int) []interfa
 		return values
 	}
 
-	return append(values, f.Addr().Interface())
+	return append(values, asSettableUnexported(f).Addr().Interface())
 }
