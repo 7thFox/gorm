@@ -9,6 +9,8 @@ Also I don't have any feature to delete a record, but I'm sure I'll do that one 
 # usage
 The following example is also available in example/main.go
 
+Note: out of date since adding DataObject requirements, but it will still work the same after those functions are added to the structs
+
 ```golang
 package main
 
